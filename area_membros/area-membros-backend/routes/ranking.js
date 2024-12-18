@@ -1,6 +1,7 @@
 const express = require('express');
-const router = express.Router();
 const db = require('../db');
+
+const router = express.Router();
 
 // Ranking semanal
 router.get('/weekly', (req, res) => {
@@ -25,12 +26,12 @@ router.get('/weekly', (req, res) => {
   // Ranking mensal
   router.get('/monthly', (req, res) => {
     const query = `
-      SELECT u.id, u.name, COUNT(ua.id) AS total_views
-      FROM user_activity ua
-      JOIN users u ON ua.user_id = u.id
-      WHERE MONTH(ua.watched_at) = MONTH(CURDATE()) AND YEAR(ua.watched_at) = YEAR(CURDATE())
-      GROUP BY u.id
-      ORDER BY total_views DESC
+      SELECT users.name, SUM(user_activity.points) AS total_points
+      FROM user_activity
+      JOIN users ON user_activity.user_id = users.id
+      WHERE user_activity.watched_at >= DATE_SUB(NOW(), INTERVAL 1 WEEK)
+      GROUP BY users.id
+      ORDER BY total_points DESC
     `;
   
     db.query(query, (err, results) => {
